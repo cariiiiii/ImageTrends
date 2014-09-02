@@ -14,6 +14,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 
 /**
+ *
  * @author Feng Wang
  */
 public class ImTrends extends Configured implements Tool {

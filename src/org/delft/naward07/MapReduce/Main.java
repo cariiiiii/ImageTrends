@@ -15,8 +15,8 @@ import org.apache.hadoop.util.ToolRunner;
  */
 public class Main {
     public enum Programs {
-        CLUSTERING("clustering", "Do clustering from a map output file (this is not a mapreduce job)."),
-        IMTRENDS("imtrends", "Extract images' hashcodes from http responses in warc (full crawl output) files.");
+        CLUSTERING("clustering", "(!!! Not recommend!) Do clustering from a map output file (this is not a map-reduce job)."),
+        IMTRENDS("imtrends", "Extract images' hashcodes from http responses from WARC (full crawl output) files.");
 
         private final String name;
         private final String description;
@@ -42,6 +42,7 @@ public class Main {
             showUsage();
             System.exit(0);
         }
+
         String tool = args[0];
         String[] toolArgs = Arrays.copyOfRange(args, 1, args.length);
         try {
@@ -49,9 +50,7 @@ public class Main {
                 retval = ToolRunner.run(new Configuration(), new ImTrends(), toolArgs);
             }
             else if (Programs.CLUSTERING.getName().equals(tool)) {
-                System.out.println("test1");
                 Clustering h = new Clustering(args[1], args[2]);
-                System.out.println("test2");
                 h.run();
 			}
             if (showUsage) {

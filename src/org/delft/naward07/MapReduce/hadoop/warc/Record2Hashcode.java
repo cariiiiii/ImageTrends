@@ -19,14 +19,28 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * Extract hash code from the WARC record.
+ *
+ * @author Feng Wang
+ */
 public class Record2Hashcode {
-    private static final int sizeThresholdMin = 8;
-    private static final int sizeThresholdMax = 4000;
-    private static final int payloadThreshold = 1000000;
+    private static final int MIN_SIZE = 8;
+    private static final int MAX_SIZE = 4000;
+    private static final int MAX_PAYLOAD = 1000000;
 
-    Record2Hashcode() {
-    }
+    Record2Hashcode() {}
 
+    /**
+     * Check if every part in the hash code satisfy the pre-defined rules (not empty).
+     * If not, return "".
+     *
+     * @param finger image finger
+     * @param date date (useless because this is not the correct date we want)
+     * @param lastModified last modified time
+     * @param url url of image
+     * @return hash code or ""
+     */
     private static String checkItems(String finger, String date, String lastModified, String url) {
         try {
             if ("".equals(finger) || ("".equals(date) && "".equals(lastModified)) || "".equals(url))
@@ -37,9 +51,16 @@ public class Record2Hashcode {
 
         if (!"".equals(lastModified))
             return finger + "|" + lastModified + "|" + url;
+
         else return finger + "|" + date + "|" + url;
     }
 
+    /**
+     * Get hash code from a record.
+     *
+     * @param record WARC record
+     * @return hash code
+     */
     public static String getHashcode(WarcRecord record) {
         try {
             HttpHeader httpHeader = record.getHttpHeader();
@@ -48,7 +69,7 @@ public class Record2Hashcode {
             } else if (httpHeader.contentType != null && httpHeader.contentType.contains("image")) {
                 InputStream inputStream1 = null;
 
-                if (record.getPayload().getTotalLength() > payloadThreshold)
+                if (record.getPayload().getTotalLength() > MAX_PAYLOAD)
                     return "";
 
                 inputStream1 = record.getPayload().getInputStream();
@@ -59,6 +80,7 @@ public class Record2Hashcode {
 //                byte[] b1 = IOUtils.toByteArray(inputStream1);
 //                byte[] encoded = Base64.encodeBase64(b1);
 //                String finger = new String(encoded, "US-ASCII");
+
                 String finger = produceFingerPrint(inputStream1);
 
                 String date = "";
@@ -70,8 +92,6 @@ public class Record2Hashcode {
                     Date tempD1 = DateUtils.parseDate(lastModified);
                     lastModified = df.format(tempD1);
 
-//                    System.out.println();
-//                    System.out.println("last: " + lastModified);
                 } catch (Exception e) {
 //                    System.out.println();
 //                    System.out.println("header:");
@@ -97,9 +117,6 @@ public class Record2Hashcode {
 //
 //                }
 
-                //String url = record.header.warcTargetUriUri.getHost() + record.header.warcTargetUriStr;
-                //String url = URLEncoder.encode(record.header.warcTargetUriStr);
-
                 return checkItems(finger, date, lastModified, url);
 
             } else {
@@ -120,9 +137,9 @@ public class Record2Hashcode {
             System.out.println("image exist, height:" + source.getHeight());
             System.out.println("image exist, width:" + source.getWidth());
 
-            if (source.getHeight() < sizeThresholdMin || source.getWidth() < sizeThresholdMin)
+            if (source.getHeight() < MIN_SIZE || source.getWidth() < MIN_SIZE)
                 return "";
-            if (source.getHeight() > sizeThresholdMax && source.getWidth() > sizeThresholdMax)
+            if (source.getHeight() > MAX_SIZE && source.getWidth() > MAX_SIZE)
                 return "";
 
             ImageHelperPHash ihph = new ImageHelperPHash();
