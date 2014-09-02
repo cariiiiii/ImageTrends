@@ -6,7 +6,7 @@ naward07 - [Feng Wang](mailto: F.Wang-6@student.tudelft.nl), [Hong Huang](mailto
 
 View the demo website of [ImTrends!](http://breezeandstorm.com/naward07/index.php)
 
-Read [Wiki](https://github.com/norvigaward/naward07/wiki) if you want to know more!
+Read [Wiki](https://github.com/wdwind/ImageTrends/wiki) if you want to know more!
 
 ### Overview repository contents
 
