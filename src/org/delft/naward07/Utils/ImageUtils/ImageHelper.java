@@ -3,21 +3,26 @@
  */
 package org.delft.naward07.Utils.ImageUtils;
 
+import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 
 public class ImageHelper {
+    private static final int MIN_SIZE = 8;
+    private static final int MAX_SIZE = 4000;
 
     public static final String path = System.getProperty("user.dir");
 
     /**
      * image resize <br/>
-     * save:ImageIO.write(BufferedImage, imgType[jpg/png/...], File);
+     * save:ImageIO.write(BufferedImage, imgType[jpg/png/gif/...], File);
      *
      * @param source source image
      * @param width  width
@@ -85,6 +90,79 @@ public class ImageHelper {
         }
         m = m / pixels.length;
         return (int) m;
+    }
+
+    /**
+     * Get image hash code.
+     *
+     * @param input Image Inputstream
+     * @return Image hashcode
+     * @throws Exception
+     */
+    public static String imageFingerPrint(InputStream input) throws Exception {
+        BufferedImage source = ImageIO.read(input);
+        if (source == null) {
+            System.out.println("no image");
+            return "";
+        } else {
+            System.out.println("image exist, height:" + source.getHeight());
+            System.out.println("image exist, width:" + source.getWidth());
+
+            if (source.getHeight() < MIN_SIZE || source.getWidth() < MIN_SIZE)
+                return "";
+            if (source.getHeight() > MAX_SIZE && source.getWidth() > MAX_SIZE)
+                return "";
+
+            ImageHelperPHash ihph = new ImageHelperPHash();
+            String hc2 = ihph.getHash(source);
+
+            int width = 8;
+            int height = 8;
+
+            BufferedImage imSmall = ImageHelper.resize(source, width, height, false);
+
+            int[] pixels = new int[width * height];
+            for (int i = 0; i < width; i++) {
+                for (int j = 0; j < height; j++) {
+                    pixels[i * height + j] = ImageHelper.rgbToGray(imSmall.getRGB(i, j));
+                }
+            }
+
+            int avgPixel = ImageHelper.average(pixels);
+
+            int[] comps = new int[width * height];
+            for (int i = 0; i < comps.length; i++) {
+                if (pixels[i] >= avgPixel) {
+                    comps[i] = 1;
+                } else {
+                    comps[i] = 0;
+                }
+            }
+
+//            String hc = Arrays.toString(comps);
+//            hc = hc.replace("[", "");
+//            hc = hc.replace("]", "");
+//            hc = hc.replace(",", "");
+//            hc = hc.replace(" ", "");
+
+            StringBuffer hashCode = new StringBuffer();
+            for (int i = 0; i < comps.length; i += 4) {
+                int result = comps[i] * (int) Math.pow(2, 3) + comps[i + 1] * (int) Math.pow(2, 2) + comps[i + 2] * (int) Math.pow(2, 1) + comps[i + 2];
+                hashCode.append(ImageHelper.binaryToHex(result));
+            }
+
+            StringBuffer hashCode2 = new StringBuffer();
+            int[] comps2 = new int[(hc2 + "000").length()];
+            for (int i = 0; i < comps2.length; i++) {
+                comps2[i] = Integer.parseInt((hc2 + "000").charAt(i) + "");
+            }
+            for (int i = 0; i < comps2.length; i += 4) {
+                int result = comps2[i] * (int) Math.pow(2, 3) + comps2[i + 1] * (int) Math.pow(2, 2) + comps2[i + 2] * (int) Math.pow(2, 1) + comps2[i + 2];
+                hashCode2.append(ImageHelper.binaryToHex(result));
+            }
+
+            return hashCode.toString() + "|" + hashCode2.toString() + "|" + source.getHeight() + "|" + source.getWidth();
+        }
     }
 
     /**

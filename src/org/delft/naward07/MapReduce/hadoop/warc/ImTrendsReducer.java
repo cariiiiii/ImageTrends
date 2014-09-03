@@ -10,7 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Feng Wang
+ * Image Trends, reducer. (Currently useless.)
+ *
+ * @author Feng Wang
  */
 
 class ImTrendsReducer extends Reducer<Text, Text, Text, Text> {
