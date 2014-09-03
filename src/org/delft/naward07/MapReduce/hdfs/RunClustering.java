@@ -12,17 +12,24 @@ import java.security.PrivilegedAction;
 import java.util.*;
 
 /**
+ *
+ *
  * Created by Feng Wang on 14-8-25.
  */
 
 public class RunClustering implements PrivilegedAction<Object> {
 
-    private final int HOST = 6;
+    // Regular expression for split the line
+    private final String SPLIT_REGEX = "\\|";
+
+    // Width parameter for the Meanshift clustering
+    private final int WIDTH = 10;
+
+    private final String OUTNAME = "testout001";
 
     private Configuration conf;
     private String path;
     private String outPath;
-    private String log = "";
 
     public RunClustering(Configuration conf, String path, String outPath) {
         this.conf = conf;
@@ -35,8 +42,7 @@ public class RunClustering implements PrivilegedAction<Object> {
     @Override
     public Object run() {
         try {
-            log = "";
-            cluster();
+            clustering();
 
         } catch (Exception e) {
             // Just dump the error..
@@ -45,39 +51,60 @@ public class RunClustering implements PrivilegedAction<Object> {
         return null;
     }
 
-    private void cluster(){
+    private void clustering(){
         Map<String, SimpleImagesInfo> hm;
-        String splitRegex = "\\|";
+        //String splitRegex = "\\|";
 
         try{
-            hm = getMap(splitRegex);
+            // Get HashMap from the input file (one month)
+            hm = getMap(SPLIT_REGEX);
 
             System.out.println(hm.size());
 
+            // Rank the HashMap by value
             LinkedHashMap tempHM = MapUtil.sortByValue(hm);
 
-            meanShift2(tempHM, 10);
+            // Do the Meanshift clustering.
+            meanShift2(tempHM, WIDTH);
         }
         catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    private Map<String, SimpleImagesInfo> getMap(String slplitRegex) throws IOException {
+    /**
+     * Get HashMap from the input file. Do filtering by the hash code and host of the item.
+     * For example, if two item has the same hash code and the host, ont of them should be
+     * ignored.
+     * Essentially this does not work because the limitation of memory.
+     *
+     * @param splitRegex Regular expression for spliting the line.
+     * @return HashMap<String, SimpleImagesInfo>
+     * @throws IOException
+     */
+    private Map<String, SimpleImagesInfo> getMap(String splitRegex) throws IOException {
         FileSystem fs = FileSystem.get(conf);
         FSDataInputStream in = fs.open(new Path(path));
         InputStream is = in.getWrappedStream();
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+        // Define beforehand, I guess it can save a little time...
         String line = br.readLine();
-        //ImagesInfo ii;
         SimpleImagesInfo sii;
         String[] items;
         URL aURL = null;
 
         Map<String, SimpleImagesInfo> hm = new HashMap<String, SimpleImagesInfo>();
 
+        /**
+         * Better way
+         * while((line = br.readline()) != null){
+         *      // TODO ...
+         * }
+         */
+
         while(line != null){
-            items = line.split(slplitRegex);
+            items = line.split(splitRegex);
             items[0] = ImageHelper.hex2Binary(items[0]);
             sii = hm.get(items[0]);
 
@@ -103,7 +130,13 @@ public class RunClustering implements PrivilegedAction<Object> {
         return hm;
     }
 
-    private void meanShift2(Map<String, SimpleImagesInfo> hm, int width){
+    /**
+     * Extract data from HashMap. Just a simple iteration.
+     *
+     * @param hm
+     * @return
+     */
+    private List<String> extractDataPoints(Map<String, SimpleImagesInfo> hm){
         List<String> data = new ArrayList<String>();
 
         Iterator iter = hm.entrySet().iterator();
@@ -115,6 +148,18 @@ public class RunClustering implements PrivilegedAction<Object> {
                 data.add(hashcode);
         }
 
+        return data;
+    }
+
+    /**
+     * Mean-shift clustering.
+     *
+     * @param hm HashMap contains the hash codes in a month.
+     * @param width The width parameter in mean-shift clustering.
+     */
+    private void meanShift2(Map<String, SimpleImagesInfo> hm, int width){
+        List<String> data = extractDataPoints(hm);
+
         MeanShiftClustering meanShiftClustering = new MeanShiftClustering(data, width, false);
         meanShiftClustering.meanShift();
 
@@ -122,9 +167,9 @@ public class RunClustering implements PrivilegedAction<Object> {
             FileSystem fs = FileSystem.get(conf);
             FSDataOutputStream out = null;
             try{
-                out = fs.append(new Path(outPath + "/testout001"));
+                out = fs.append(new Path(outPath + "/" + OUTNAME));
             } catch (Exception e){
-                out = fs.create(new Path(outPath + "/testout001"));
+                out = fs.create(new Path(outPath + "/" + OUTNAME));
             }
 
             HashMap<Integer, Integer> rankedCenters = meanShiftClustering.getRankedCentersHM();
@@ -133,7 +178,7 @@ public class RunClustering implements PrivilegedAction<Object> {
 
             LinkedHashMap<Integer, List<String>> output = new LinkedHashMap<Integer, List<String>>();
 
-            iter = sortedDataByLabel.entrySet().iterator();
+            Iterator iter = sortedDataByLabel.entrySet().iterator();
             while(iter.hasNext()){
                 Map.Entry pairs = (Map.Entry) iter.next();
                 output.put((Integer) pairs.getKey(), new ArrayList<String>());

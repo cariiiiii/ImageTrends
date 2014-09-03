@@ -50,7 +50,7 @@ public class Main {
                 retval = ToolRunner.run(new Configuration(), new ImTrends(), toolArgs);
             }
             else if (Programs.CLUSTERING.getName().equals(tool)) {
-                Clustering h = new Clustering(args[1], args[2]);
+                Clustering h = new Clustering(args[1], args[2], args[3]);
                 h.run();
 			}
             if (showUsage) {
