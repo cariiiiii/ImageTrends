@@ -16,8 +16,9 @@ import org.delft.naward07.Utils.MapUtil;
 
 /**
  * Transfer the clustering results to final output (hashcode|pHash|height|width|time|URL).
- * Deprecated. Much easier by using Python!!!
- * 
+ * Deprecated. Much easier by using Python!!! And Python can also easily ranked the points
+ * within the cluster!
+ *
  * Python is much easier and flexible than Java (at least for personal developer)!
  *
  * @author Feng Wang
