@@ -4,11 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Item indices.
+ *
  * @author Feng Wang
  */
-
 public class ItemIndices implements Comparable<ItemIndices> {
+
+    /**
+     * Number of the item.
+     */
 	private int num;
+
+    /**
+     * Indices of the item.
+     */
 	private List<Integer> indices;
 	
 	public ItemIndices(){
@@ -23,14 +32,6 @@ public class ItemIndices implements Comparable<ItemIndices> {
 	
 	public int getNum() { return num; }
 	public List<Integer> getIndices() { return indices; }
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public int compareTo(ItemIndices arg0) {

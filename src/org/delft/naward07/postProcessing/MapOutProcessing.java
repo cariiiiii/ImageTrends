@@ -9,11 +9,20 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 /**
+ * Process the output of the Map.
+ *
  * Created by wdwind on 14-8-27.
  */
 
 public class MapOutProcessing {
 
+    /**
+     * Generate CSV file, index file, num file from a specific input file.
+     *
+     * @param dir Dictionary of the file.
+     * @param filename File name.
+     * @throws IOException
+     */
     public void mapOutProcessing(String dir, String filename) throws IOException {
         System.out.println("Start transfer data to csv.");
 
@@ -68,7 +77,7 @@ public class MapOutProcessing {
             } else {
                 hs.add(items[0] + aURL.getHost());
                 //bw.write("tttt  ");
-                bwCSV.write(hashcode2CSV(items[0]));
+                bwCSV.write(hashcode2Binary(items[0]));
                 bwCSV.write("\n");
 
                 bwIndex.write(index + "\t" +line);
@@ -94,6 +103,13 @@ public class MapOutProcessing {
         bwIndex.close();
     }
 
+    /**
+     * Create the path, and the file.
+     *
+     * @param filepath Input file path.
+     * @return File BufferedWriter.
+     * @throws IOException
+     */
     private BufferedWriter createPathAndFile(String filepath) throws IOException {
         File out = new File(filepath);
         File parent = out.getParentFile();
@@ -105,7 +121,13 @@ public class MapOutProcessing {
         return new BufferedWriter(new FileWriter(out));
     }
 
-    private String hashcode2CSV(String hashcode) {
+    /**
+     * Convert hash code (HEX) to binary code.
+     *
+     * @param hashcode Hash code in HEX.
+     * @return Corresponding binary code.
+     */
+    private String hashcode2Binary(String hashcode) {
         // Hashcode to binary
         hashcode = StringUtil.hex2Binary(hashcode);
 
@@ -123,6 +145,12 @@ public class MapOutProcessing {
         return sb.toString();
     }
 
+    /**
+     * For every file in the folder, employ some processing.
+     *
+     * @param folder Folder path.
+     * @throws Exception
+     */
     public void processFolder(String folder) throws Exception {
         File f = new File(folder);
         ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));

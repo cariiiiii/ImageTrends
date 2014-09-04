@@ -5,11 +5,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
+ * Some post processing function for PHP. (Useless now, please use FilesForPHP.)
+ *
  * Created by wdwind
  */
 
 public class FileNamesForPHP {
 
+    /**
+     * For every file in the input folder, extract its name. (Because the file is the output of the
+     * Map process, it has a specific format, yyyymm, for example, 200103).
+     * This function record the name and generate another format, for example, Mar. 2001. And generate
+     * PHP array format output.
+     *
+     * @param inputFolder Input folder, which contains the outputs of the Map.
+     * @param outputName Output file.
+     * @throws IOException
+     */
     public static void getTimePeriodsName(String inputFolder, String outputName) throws IOException {
         File f = new File(inputFolder);
         //ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));
@@ -85,6 +97,12 @@ public class FileNamesForPHP {
         bw.close();
     }
 
+    /**
+     * Corresponding between number of month and the abbreviation of the month.
+     *
+     * @param month Month in number, ie. 01 represents January.
+     * @return Month in String abbreviation, ie. Jan.
+     */
     private static String getMon(int month) {
         switch (month){
             case 1:
@@ -117,6 +135,11 @@ public class FileNamesForPHP {
 
     }
 
+    /**
+     * Calculate the number of all images gathered.
+     *
+     * @param inputFolder The output folder of Map (org.delft.naward07.MapReduce.hdfs.SplitMapOutput).
+     */
     public static void totalLines(String inputFolder){
         long lines = 0;
 
@@ -148,6 +171,13 @@ public class FileNamesForPHP {
         System.out.println(lines);
     }
 
+    /**
+     * Count lines of one file.
+     *
+     * @param filename File String.
+     * @return Number of lines in the file.
+     * @throws IOException
+     */
     public static long countLines(String filename) throws IOException {
         InputStream is = new BufferedInputStream(new FileInputStream(filename));
         try {

@@ -5,11 +5,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
+ * Some post processing function for PHP.
+ *
  * Created by wdwind on 14-8-30.
  */
 
 public class FilesForPHP {
 
+    /**
+     * For every file in the input folder, extract its name. (Because the file is the output of the
+     * Map process, it has a specific format, yyyymm, for example, 200103).
+     * This function record the name and generate another format, for example, Mar. 2001. And generate
+     * PHP array format output.
+     *
+     * @param inputFolder Input folder, which contains the outputs of the Map.
+     * @param outputName Output file.
+     * @throws IOException
+     */
     public static void getTimePeriodsName(String inputFolder, String outputName) throws IOException {
         File f = new File(inputFolder);
         //ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));
@@ -85,6 +97,12 @@ public class FilesForPHP {
         bw.close();
     }
 
+    /**
+     * Corresponding between number of month and the abbreviation of the month.
+     *
+     * @param month Month in number, ie. 01 represents January.
+     * @return Month in String abbreviation, ie. Jan.
+     */
     private static String getMon(int month) {
         switch (month){
             case 1:
@@ -117,6 +135,11 @@ public class FilesForPHP {
 
     }
 
+    /**
+     * Calculate the number of all images gathered.
+     *
+     * @param inputFolder The output folder of Map (org.delft.naward07.MapReduce.hdfs.SplitMapOutput).
+     */
     public static void totalLines(String inputFolder){
         long lines = 0;
 
@@ -148,6 +171,13 @@ public class FilesForPHP {
         System.out.println(lines);
     }
 
+    /**
+     * Count lines of one file.
+     *
+     * @param filename File String.
+     * @return Number of lines in the file.
+     * @throws IOException
+     */
     public static long countLines(String filename) throws IOException {
         InputStream is = new BufferedInputStream(new FileInputStream(filename));
         try {
@@ -169,6 +199,11 @@ public class FilesForPHP {
         }
     }
 
+    /**
+     * Get the number of images in each file (month), and output to PHP array format.
+     *
+     * @param inputFolder Input folder path, which contains the outputs of the Map.s
+     */
     public static void getImgNum(String inputFolder){
         File f = new File(inputFolder);
         ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));
@@ -200,6 +235,13 @@ public class FilesForPHP {
         System.out.println(sb.toString());
     }
 
+    /**
+     * Get top N lines of every file in the input folder, and the output to the output folder.
+     *
+     * @param inputFolder Input folder path, which contains the outputs of the Map.
+     * @param outputFolder Output folder path.
+     * @param N Top N lines want to preserve.
+     */
     public static void getNLines(String inputFolder, String outputFolder, int N){
         File f = new File(inputFolder);
         ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));

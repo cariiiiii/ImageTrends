@@ -19,6 +19,8 @@ import org.apache.hadoop.fs.Path;
 
 
 /**
+ * Totally useless...
+ *
  * @author Feng Wang
  */
 public class TestPrint implements PrivilegedAction<Object> {
