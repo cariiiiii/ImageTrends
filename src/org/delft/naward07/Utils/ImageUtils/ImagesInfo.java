@@ -1,7 +1,5 @@
 package org.delft.naward07.Utils.ImageUtils;
 
-import java.awt.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -10,9 +8,12 @@ import java.util.List;
 import com.google.gson.Gson;
 
 /**
+ * Store images' information. Used in HashMap.
+ * This class is too complicated. Try the SimpleImagesInfo class.
+ *
  * Created by Feng Wang on 14-7-22.
  */
-
+@Deprecated
 public class ImagesInfo implements Comparable<ImagesInfo> {
     private final int HASH = 0;
     private final int PHASH = 1;
@@ -197,12 +198,4 @@ public class ImagesInfo implements Comparable<ImagesInfo> {
         return g.toJson(this);
     }
 
-    public static void main(String[] args) {
-//        ImagesInfo ii = new ImagesInfo("test1", "asd");
-//
-////        ii.increment(1,2,"1","2","t");
-////        ii.increment(4,5, "a","b","c");
-//
-//        System.out.println(ii.toString());
-    }
 }

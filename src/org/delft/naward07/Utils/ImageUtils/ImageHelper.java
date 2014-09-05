@@ -1,6 +1,3 @@
-/**
- * Created by Feng Wang on 14-6-11.
- */
 package org.delft.naward07.Utils.ImageUtils;
 
 import javax.imageio.ImageIO;
@@ -14,7 +11,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 
+/**
+ * Class to process the image.
+ *
+ * Created by Feng Wang on 14-6-11.
+ */
 public class ImageHelper {
+    /**
+     * Image size threshold in generating the image finger print.
+     */
     private static final int MIN_SIZE = 8;
     private static final int MAX_SIZE = 4000;
 
@@ -232,6 +237,12 @@ public class ImageHelper {
 //        return new BigInteger(s, 16).toString(2);
 //    }
 
+    /**
+     * Convert HEX string to binary string.
+     *
+     * @param Hex HEX string
+     * @return Binary string
+     */
     public static String hex2Binary(String Hex) {
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < Hex.length(); i ++){

@@ -15,7 +15,7 @@ import javax.imageio.ImageIO;
 
 /*
  * pHash-like image hash. 
- * Author: Elliot Shepherd (elliot@jarofworms.com
+ * Author: Elliot Shepherd (elliot@jarofworms.com)
  * Based On: http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
  */
 public class ImageHelperPHash {
