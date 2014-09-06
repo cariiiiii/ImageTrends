@@ -12,11 +12,14 @@ import java.security.PrivilegedAction;
 import java.util.*;
 
 /**
+ * Class to do the clustering for each period (month).
+ * Run on HDFS.
  *
+ * Deprecated because using Python scipy lib is much easier.
  *
  * Created by Feng Wang on 14-8-25.
  */
-
+@Deprecated
 public class RunClustering implements PrivilegedAction<Object> {
 
     // Regular expression for split the line
@@ -25,6 +28,7 @@ public class RunClustering implements PrivilegedAction<Object> {
     // Width parameter for the Meanshift clustering
     private final int WIDTH = 10;
 
+    // Output file name
     private final String OUTNAME = "testout001";
 
     private Configuration conf;
@@ -86,6 +90,14 @@ public class RunClustering implements PrivilegedAction<Object> {
         FileSystem fs = FileSystem.get(conf);
         FSDataInputStream in = fs.open(new Path(path));
         InputStream is = in.getWrappedStream();
+        return getMap(is, splitRegex);
+    }
+
+    private Map<String, SimpleImagesInfo> getMap(String file, String splitRegex) throws IOException {
+        return getMap(new FileInputStream(new File(file)), splitRegex);
+    }
+
+    private Map<String, SimpleImagesInfo> getMap(InputStream is, String splitRegex) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
         // Define beforehand, I guess it can save a little time...
@@ -172,12 +184,17 @@ public class RunClustering implements PrivilegedAction<Object> {
                 out = fs.create(new Path(outPath + "/" + OUTNAME));
             }
 
+            // Get ranked centers (rank by the number of points in the cluster).
             HashMap<Integer, Integer> rankedCenters = meanShiftClustering.getRankedCentersHM();
 
+            // Get sorted data by label.
+            // In the following LinkedHashMap, key is the cluster number, value is the data points in this cluster.
             LinkedHashMap<Integer, HashSet<String>> sortedDataByLabel = meanShiftClustering.getSortedDataInSetByLabel();
 
+            // Output
             LinkedHashMap<Integer, List<String>> output = new LinkedHashMap<Integer, List<String>>();
 
+            // Convert the value of sortedDataByLabel to real hash codes.
             Iterator iter = sortedDataByLabel.entrySet().iterator();
             while(iter.hasNext()){
                 Map.Entry pairs = (Map.Entry) iter.next();
@@ -193,7 +210,10 @@ public class RunClustering implements PrivilegedAction<Object> {
 
             System.out.println("--- Sorted data by label:");
             out.write(("--- Sorted data by label:").getBytes());
+
             //LinkedHashMap<Integer, List<String>> sortedDataByLabel = meanShiftClustering.getSortedDataByLabel();
+
+            // Output to file
             Iterator iter3 = output.entrySet().iterator();
             while(iter3.hasNext()){
                 Map.Entry pairs = (Map.Entry) iter3.next();
@@ -214,210 +234,159 @@ public class RunClustering implements PrivilegedAction<Object> {
 
     }
 
+//    /**
+//     * Same to cluster(). Just the input is one single file.
+//     *
+//     * @param file Input file (usually is the output of Map and after post processing).
+//     */
+//    private void cluster(String file){
+//
+//        Map<String, SimpleImagesInfo> hm;
+//        String splitRegex = "\\|";
+//
+//        try{
+//            hm = getMap(file, splitRegex);
+//
+//            System.out.println(hm.size());
+//
+//            LinkedHashMap tempHM = MapUtil.sortByValue(hm);
+//
+//            //hm = Utils.sortByValue(hm);
+//
+//            //LinkedHashMap hm2 = clusterMeanShift(tempHM, 10);
+//
+//            meanShift(tempHM, 10);
+//
+//            //MapUtil.outputMap(hm2, 30);
+//        }
+//        catch (Exception e){
+//            e.printStackTrace();
+//        }
+//    }
 
-    private void cluster(String file){
-
-        Map<String, SimpleImagesInfo> hm;
-        String splitRegex = "\\|";
-
-        try{
-            hm = getMap(file, splitRegex);
-
-            System.out.println(hm.size());
-
-            LinkedHashMap tempHM = MapUtil.sortByValue(hm);
-
-            //hm = Utils.sortByValue(hm);
-
-            //LinkedHashMap hm2 = clusterMeanShift(tempHM, 10);
-
-            meanShift(tempHM, 10);
-
-            //MapUtil.outputMap(hm2, 30);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    private Map<String, SimpleImagesInfo> getMap(String file, String slplitRegex) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        String line = br.readLine();
-        //ImagesInfo ii;
-        SimpleImagesInfo sii;
-        String[] items;
-        URL aURL = null;
-
-        Map<String, SimpleImagesInfo> hm = new HashMap<String, SimpleImagesInfo>();
-
-        while(line != null){
-            items = line.split(slplitRegex);
-            items[0] = ImageHelper.hex2Binary(items[0]);
-            sii = hm.get(items[0]);
-
-            try{
-                aURL = new URL(items[5]);
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-
-            if (sii == null) {
-                hm.put(items[0], new SimpleImagesInfo(line, aURL.getHost()));
-            } else {
-                boolean increase = sii.increment(aURL.getHost());
-                if (increase)
-                    sii.update(line, aURL.getHost());
-            }
-
-            line = br.readLine();
-            aURL = null;
-        }
-
-        br.close();
-        return hm;
-    }
-
-    private void meanShift(Map<String, SimpleImagesInfo> hm, int width){
-        List<String> data = new ArrayList<String>();
-
-        Iterator iter = hm.entrySet().iterator();
-        while (iter.hasNext()){
-            Map.Entry pairs = (Map.Entry) iter.next();
-            Integer num = ((SimpleImagesInfo)pairs.getValue()).getNumber();
-            String hashcode = (String) pairs.getKey();
-            for (int i = 0; i < num; i ++)
-                data.add(hashcode);
-        }
-
-        MeanShiftClustering meanShiftClustering = new MeanShiftClustering(data, width, false);
-        meanShiftClustering.meanShift();
-
-        try{
-            System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream("output010"))));
-
-            HashMap<Integer, Integer> rankedCenters = meanShiftClustering.getRankedCentersHM();
-
-            LinkedHashMap<Integer, HashSet<String>> sortedDataByLabel = meanShiftClustering.getSortedDataInSetByLabel();
-
-            LinkedHashMap<Integer, List<String>> output = new LinkedHashMap<Integer, List<String>>();
-
-            iter = sortedDataByLabel.entrySet().iterator();
-            while(iter.hasNext()){
-                Map.Entry pairs = (Map.Entry) iter.next();
-                output.put((Integer) pairs.getKey(), new ArrayList<String>());
-                List<String> temp = new ArrayList<String>((HashSet<String>)pairs.getValue());
-                for(String s: temp){
-                    List<String> list = output.get(pairs.getKey());
-                    SimpleImagesInfo sii = hm.get(s);
-                    list.addAll(sii.getHashcodes());
-                    output.put((Integer) pairs.getKey(), list);
-                }
-            }
-
-            System.out.println("--- Sorted data by label:");
-            //LinkedHashMap<Integer, List<String>> sortedDataByLabel = meanShiftClustering.getSortedDataByLabel();
-            Iterator iter3 = output.entrySet().iterator();
-            while(iter3.hasNext()){
-                Map.Entry pairs = (Map.Entry) iter3.next();
-                String value = ListUtil.list2String((List<String>) pairs.getValue(), "\t");
-                System.out.println(rankedCenters.get(pairs.getKey()).toString() + "\t" + value);
-            }
-
-            System.out.println("--- End sorted data by label.");
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-    }
-
-    private void clusterMeanShift(Map<String, SimpleImagesInfo> hm, int width){
-        List<String> data = new ArrayList<String>();
-
-        Iterator iter = hm.entrySet().iterator();
-        while (iter.hasNext()){
-            Map.Entry pairs = (Map.Entry) iter.next();
-            Integer num = ((SimpleImagesInfo)pairs.getValue()).getNumber();
-            String hashcode = (String) pairs.getKey();
-            for (int i = 0; i < num; i ++)
-                data.add(hashcode);
-        }
-
-        MeanShiftClustering meanShiftClustering = new MeanShiftClustering(data, width, false);
-        meanShiftClustering.meanShift();
-        //meanShiftClustering.meanShiftUsingDistanceMatrix();
-
-        try{
-            System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream("output007"))));
-
-            System.out.println("Centers:");
-
-            Object[] centers = meanShiftClustering.getCenters().toArray();
-            for (Object s: centers)
-                System.out.println((String) s);
-
-            System.out.println("Labels:");
-
-            List<Integer> labels = meanShiftClustering.getLabel();
-            for (Integer i : labels)
-                System.out.println(i);
-
-            System.out.println("Centers in data:");
-
-            List<Integer> centers_index = meanShiftClustering.getCenters_in_data();
-            try{
-                for (Integer i : centers_index)
-                    System.out.println(data.get(i));
-            } catch (Exception e){
-                //
-            }
-
-            System.out.println("Ranked centers:");
-
-            HashMap<String, Integer> rankedCenters = meanShiftClustering.getRankedCenters();
-            Iterator iter2 = rankedCenters.entrySet().iterator();
-            while (iter2.hasNext()){
-                Map.Entry pairs = (Map.Entry) iter2.next();
-                System.out.println(pairs.getKey() + "  " + pairs.getValue());
-                iter2.remove();
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-
-        LinkedHashMap<Integer, HashSet<String>> sortedDataByLabel = meanShiftClustering.getSortedDataInSetByLabel();
-
-        LinkedHashMap<Integer, List<String>> output = new LinkedHashMap<Integer, List<String>>();
-
-        iter = sortedDataByLabel.entrySet().iterator();
-        while(iter.hasNext()){
-            Map.Entry pairs = (Map.Entry) iter.next();
-            output.put((Integer) pairs.getKey(), new ArrayList<String>());
-            List<String> temp = new ArrayList<String>((HashSet<String>)pairs.getValue());
-            for(String s: temp){
-                List<String> list = output.get(pairs.getKey());
-                SimpleImagesInfo sii = hm.get(s);
-                list.addAll(sii.getHashcodes());
-                output.put((Integer) pairs.getKey(), list);
-            }
-        }
-
-        System.out.println("--- Sorted data by label:");
-        //LinkedHashMap<Integer, List<String>> sortedDataByLabel = meanShiftClustering.getSortedDataByLabel();
-        Iterator iter3 = output.entrySet().iterator();
-        while(iter3.hasNext()){
-            Map.Entry pairs = (Map.Entry) iter3.next();
-            String value = ListUtil.list2String((List<String>) pairs.getValue(), "\t");
-            System.out.println(pairs.getKey() + "  " + value);
-        }
-
-        System.out.println("--- End sorted data by label.");
-
-        //return output;
-    }
+//    private void meanShift(Map<String, SimpleImagesInfo> hm, int width){
+//        List<String> data = extractDataPoints(hm);
+//
+//        MeanShiftClustering meanShiftClustering = new MeanShiftClustering(data, width, false);
+//        meanShiftClustering.meanShift();
+//
+//        try{
+//            System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream("output010"))));
+//
+//            HashMap<Integer, Integer> rankedCenters = meanShiftClustering.getRankedCentersHM();
+//
+//            LinkedHashMap<Integer, HashSet<String>> sortedDataByLabel = meanShiftClustering.getSortedDataInSetByLabel();
+//
+//            LinkedHashMap<Integer, List<String>> output = new LinkedHashMap<Integer, List<String>>();
+//
+//            Iterator iter = sortedDataByLabel.entrySet().iterator();
+//            while(iter.hasNext()){
+//                Map.Entry pairs = (Map.Entry) iter.next();
+//                output.put((Integer) pairs.getKey(), new ArrayList<String>());
+//                List<String> temp = new ArrayList<String>((HashSet<String>)pairs.getValue());
+//                for(String s: temp){
+//                    List<String> list = output.get(pairs.getKey());
+//                    SimpleImagesInfo sii = hm.get(s);
+//                    list.addAll(sii.getHashcodes());
+//                    output.put((Integer) pairs.getKey(), list);
+//                }
+//            }
+//
+//            System.out.println("--- Sorted data by label:");
+//            //LinkedHashMap<Integer, List<String>> sortedDataByLabel = meanShiftClustering.getSortedDataByLabel();
+//            Iterator iter3 = output.entrySet().iterator();
+//            while(iter3.hasNext()){
+//                Map.Entry pairs = (Map.Entry) iter3.next();
+//                String value = ListUtil.list2String((List<String>) pairs.getValue(), "\t");
+//                System.out.println(rankedCenters.get(pairs.getKey()).toString() + "\t" + value);
+//            }
+//
+//            System.out.println("--- End sorted data by label.");
+//        } catch (Exception e){
+//            e.printStackTrace();
+//        }
+//
+//    }
+//
+//    private void clusterMeanShift(Map<String, SimpleImagesInfo> hm, int width){
+//        List<String> data = extractDataPoints(hm);
+//
+//        MeanShiftClustering meanShiftClustering = new MeanShiftClustering(data, width, false);
+//        meanShiftClustering.meanShift();
+//        //meanShiftClustering.meanShiftUsingDistanceMatrix();
+//
+//        try{
+//            System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream("output007"))));
+//
+//            System.out.println("Centers:");
+//
+//            Object[] centers = meanShiftClustering.getCenters().toArray();
+//            for (Object s: centers)
+//                System.out.println((String) s);
+//
+//            System.out.println("Labels:");
+//
+//            List<Integer> labels = meanShiftClustering.getLabel();
+//            for (Integer i : labels)
+//                System.out.println(i);
+//
+//            System.out.println("Centers in data:");
+//
+//            List<Integer> centers_index = meanShiftClustering.getCenters_in_data();
+//            try{
+//                for (Integer i : centers_index)
+//                    System.out.println(data.get(i));
+//            } catch (Exception e){
+//                //
+//            }
+//
+//            System.out.println("Ranked centers:");
+//
+//            HashMap<String, Integer> rankedCenters = meanShiftClustering.getRankedCenters();
+//            Iterator iter2 = rankedCenters.entrySet().iterator();
+//            while (iter2.hasNext()){
+//                Map.Entry pairs = (Map.Entry) iter2.next();
+//                System.out.println(pairs.getKey() + "  " + pairs.getValue());
+//                iter2.remove();
+//            }
+//        } catch (Exception e){
+//            e.printStackTrace();
+//        }
+//
+//
+//        LinkedHashMap<Integer, HashSet<String>> sortedDataByLabel = meanShiftClustering.getSortedDataInSetByLabel();
+//
+//        LinkedHashMap<Integer, List<String>> output = new LinkedHashMap<Integer, List<String>>();
+//
+//        Iterator iter = sortedDataByLabel.entrySet().iterator();
+//        while(iter.hasNext()){
+//            Map.Entry pairs = (Map.Entry) iter.next();
+//            output.put((Integer) pairs.getKey(), new ArrayList<String>());
+//            List<String> temp = new ArrayList<String>((HashSet<String>)pairs.getValue());
+//            for(String s: temp){
+//                List<String> list = output.get(pairs.getKey());
+//                SimpleImagesInfo sii = hm.get(s);
+//                list.addAll(sii.getHashcodes());
+//                output.put((Integer) pairs.getKey(), list);
+//            }
+//        }
+//
+//        System.out.println("--- Sorted data by label:");
+//        //LinkedHashMap<Integer, List<String>> sortedDataByLabel = meanShiftClustering.getSortedDataByLabel();
+//        Iterator iter3 = output.entrySet().iterator();
+//        while(iter3.hasNext()){
+//            Map.Entry pairs = (Map.Entry) iter3.next();
+//            String value = ListUtil.list2String((List<String>) pairs.getValue(), "\t");
+//            System.out.println(pairs.getKey() + "  " + value);
+//        }
+//
+//        System.out.println("--- End sorted data by label.");
+//
+//        //return output;
+//    }
 
     public static void main(String[] args) {
         RunClustering rc = new RunClustering();
-        rc.cluster("201202");
+        //rc.cluster("201202");
     }
 }
