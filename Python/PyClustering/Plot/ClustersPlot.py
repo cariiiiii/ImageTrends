@@ -2,7 +2,7 @@
 __author__ = 'Feng Wang'
 
 from os import walk
-from ClusterFigure import cluster_figure
+from SingleClusterPlot import cluster_figure
 
 
 def wrapper(data_path, cluster_path, output_path):
