@@ -26,13 +26,14 @@ def wrapper(data_path, cluster_path, output_path):
     for filename in files:
         print data_path + "\\" + filename
         cluster_figure(data_path + "\\" + filename,
-                        cluster_path + "\\" + filename[:len(filename) - 4] + ".clusters",
-                        output_path)
+                       cluster_path + "\\" + filename[:len(filename) - 4] + ".clusters",
+                       output_path)
+
 
 if __name__ == '__main__':
     wrapper(u"C:\\Users\\wdwind\\SkyDrive\\文档\\clustering008\\CSV",
             u"C:\\Users\\wdwind\\SkyDrive\\文档\\clustering008\\results_C_clustering",
             u"C:\\Users\\wdwind\\SkyDrive\\文档\\clustering008\\figures")
-##    from timeit import Timer
-##    t = Timer("test()", "from __main__ import test")
-##    print t.timeit(number=1)
+    ##    from timeit import Timer
+    ##    t = Timer("test()", "from __main__ import test")
+    ##    print t.timeit(number=1)
