@@ -9,7 +9,7 @@ import collections
 from operator import itemgetter
 
 
-def cluster_figure(data_file, cluster_file, output_path):
+def cluster_plot(data_file, cluster_file, output_path):
     """
     Draw the figure of the clusters (top 10 clusters in 2 dimensions).
 
@@ -100,9 +100,9 @@ def cluster_figure(data_file, cluster_file, output_path):
 
 
 if __name__ == '__main__':
-    cluster_figure(r"D:\198401.csv",
-                   r"D:\198401.clusters",
-                   r"")
+    cluster_plot(r"D:\198401.csv",
+                 r"D:\198401.clusters",
+                 r"")
     ##    from timeit import Timer
     ##    t = Timer("test()", "from __main__ import test")
     ##    print t.timeit(number=1)
