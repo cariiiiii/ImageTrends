@@ -15,6 +15,26 @@ import java.util.HashSet;
  */
 
 public class MapOutProcessing {
+    private final int pHASH_LAST_N = 3;
+    private final int AVEHASH_LAST_N = 0;
+
+    private final int pHASH_IND = 1;
+    private final int AVEHASH_IND = 0;
+
+    private final int lastN;
+    private final int ind;
+
+    public MapOutProcessing(int type) throws Exception {
+        if (type == 1){
+            ind = pHASH_IND;
+            lastN = pHASH_LAST_N;
+        } else if (type == 0){
+            ind = AVEHASH_IND;
+            lastN = AVEHASH_LAST_N;
+        } else {
+            throw new Exception("Wrong type");
+        }
+    }
 
     /**
      * Generate CSV file, index file, num file from a specific input file.
@@ -70,14 +90,14 @@ public class MapOutProcessing {
                 e.printStackTrace();
             }
 
-            if(hs.contains(items[0] + aURL.getHost())){
+            if(hs.contains(items[ind] + aURL.getHost())){
                 //System.out.println(line);
                 line = br.readLine();
                 continue;
             } else {
-                hs.add(items[0] + aURL.getHost());
+                hs.add(items[ind] + aURL.getHost());
                 //bw.write("tttt  ");
-                bwCSV.write(hashcode2Binary(items[0]));
+                bwCSV.write(hashcode2Binary(items[ind], lastN));
                 bwCSV.write("\n");
 
                 bwIndex.write(index + "\t" +line);
@@ -146,12 +166,27 @@ public class MapOutProcessing {
     }
 
     /**
+     * Convert hash code (HEX) to binary code.
+     *
+     * @param hashcode Hash code in HEX.
+     * @param lastN Delete last N digit.
+     * @return Corresponding binary code.
+     */
+    private String hashcode2Binary(String hashcode, int lastN) {
+        String hash = hashcode2Binary(hashcode);
+        hash = hash.substring(0, hash.length() - 2 * lastN);
+
+        return hash;
+    }
+
+    /**
      * For every file in the folder, employ some processing.
      *
      * @param folder Folder path.
      * @throws Exception
      */
     public void processFolder(String folder) throws Exception {
+
         File f = new File(folder);
         ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));
         ArrayList<String> names = new ArrayList<String>(Arrays.asList(f.list()));
@@ -175,10 +210,11 @@ public class MapOutProcessing {
     }
 
     public static void main(String[] args) throws Exception {
-        MapOutProcessing mop = new MapOutProcessing();
+        MapOutProcessing mop = new MapOutProcessing(1);
         //mop.mapOutProcessing("./data/input/", "200303");
 
-        mop.processFolder("C:\\Users\\wdwind\\SkyDrive\\文档\\clustering008");
+        mop.processFolder("D:\\F\\课件2\\IN4144 Data Science (2013-2014 Q4)\\project\\DATA" +
+                "\\clustering008\\raw");
 
     }
 
