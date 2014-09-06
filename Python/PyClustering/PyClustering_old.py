@@ -1,14 +1,18 @@
 __author__ = 'Feng Wang'
 
 from os import walk, path
-from numpy import vstack,array,genfromtxt,zeros
-from numpy.random import rand
-from scipy.cluster.vq import kmeans,kmeans2,vq,whiten
-from random import random
+from numpy import vstack, array, genfromtxt, zeros
+from scipy.cluster.vq import kmeans, kmeans2, vq, whiten
 #from __future__ import print_function
 #from timeit import Timer
 
+
 def clustering():
+    """
+    For testing.
+
+    @deprecated
+    """
     mypath = r"C:\Users\D062988\Documents\DS\clustering008\CSV"
     files = []
     dirname = ""
@@ -16,7 +20,6 @@ def clustering():
         dirname = dirpath
         files.extend(filenames)
         break
-
 
     for filename in files:
         data = genfromtxt(mypath + "\\" + filename, delimiter=',')
@@ -42,22 +45,23 @@ def clustering():
         if cen_num > 10000:
             cen_num = 10000
 
-        centroids,_ = kmeans(data, cen_num, ite_num)
-        
+        centroids, _ = kmeans(data, cen_num, ite_num)
+
         #print "-- End clustering"
         print "-- Assign cluster to data"
-        idx,_ = vq(data,centroids)
+        idx, _ = vq(data, centroids)
         idx = idx.tolist()
 
         print "-- Write to output file"
         out = ','.join([str(i) for i in idx])
         parent = path.dirname(path.abspath(mypath))
-        f = open(parent + "\\results\\" + filename.split(".")[0] + ".clusters",'w')
+        f = open(parent + "\\results\\" + filename.split(".")[0] + ".clusters", 'w')
         f.write(out)
         f.close()
         print "\n"
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     clustering()
 ##    from timeit import Timer
 ##    t = Timer("test()", "from __main__ import test")
