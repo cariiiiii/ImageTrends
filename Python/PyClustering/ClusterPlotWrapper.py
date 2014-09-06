@@ -2,7 +2,7 @@
 __author__ = 'Feng Wang'
 
 from os import walk
-from SingleClusterPlot import cluster_figure
+from SingleFile.ClusterPlot import cluster_plot
 
 
 def wrapper(data_path, cluster_path, output_path):
@@ -25,9 +25,9 @@ def wrapper(data_path, cluster_path, output_path):
     # Draw figures for each file
     for filename in files:
         print data_path + "\\" + filename
-        cluster_figure(data_path + "\\" + filename,
-                       cluster_path + "\\" + filename[:len(filename) - 4] + ".clusters",
-                       output_path)
+        cluster_plot(data_path + "\\" + filename,
+                     cluster_path + "\\" + filename[:len(filename) - 4] + ".clusters",
+                     output_path)
 
 
 if __name__ == '__main__':

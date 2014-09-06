@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 __author__ = 'wdwind'
 
 import numpy
@@ -29,7 +30,7 @@ def method_name(number):
     @return: Number of iterations.
     """
 
-    if len(number) < 1000:
+    if number < 1000:
         ite_num = 10
     else:
         ite_num = 1

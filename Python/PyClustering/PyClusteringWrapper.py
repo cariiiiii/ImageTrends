@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 __author__ = 'Feng Wang'
 
 from os import walk, path
