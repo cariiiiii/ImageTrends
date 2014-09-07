@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 __author__ = 'Feng Wang'
+# This program should be put in a path without strange characters.
 
 import PyClusteringWrapper
 import ClusterPlotWrapper
